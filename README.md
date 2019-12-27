@@ -19,4 +19,28 @@ To run an application designed in Monolith, where 5 is the codeid shown in the e
 ipy -c "from PythonRunner import PythonRunner as pr;m=pr.PythonGetAndRun('5');print m.Test();"
 ```
 
+## Custom Injected Commands
+PythonGetAndRun(codeid) : get the code and return it as a script object
+```
+m = PythonGetAndRun(5)
+r = m.Test()
+LogError(r)
+```
+
+PythonGetAndRunDict(codeid,dict) : run the code adding dict to the global dictionary 
+```
+l = { 'version': 1 }
+m = PythonGetAndRunDict(5,l)
+r = m.Test()
+LogError(r)
+```
+
+PythonGetCode(codeid) : Get just the code
+```
+code = PythonGetCode(5)
+LogError(code)
+```
+
+LogError(msg) : Log an error to the console using print
+
 ![Alt](https://raw.githubusercontent.com/ktmdan/MonolithStandlone/master/docs/monolithscreenshot.png "Screenshot")
