@@ -1,0 +1,1720 @@
+﻿<!DOCTYPE html>
+<!--
+ACE Editor: http://ace.c9.io/#nav=api&api=edit_session
+W2UI: http://w2ui.com/web/docs/w2sidebar.hide
+
+-->
+
+<html lang="en">
+<head>
+    <title>Monolith Editor</title>
+    <link rel="stylesheet" type="text/css" href="w2ui-1.4.2.css"/>
+    <link rel="stylesheet" type="text/css" href="jquery.contextMenu.min.css"/>
+    <link href="font-awesome/css/font-awesome.min.css" rel="stylesheet">
+
+    <script src="jquery.min.js"></script>
+    <script src="jquery-ui.min.js"></script>
+    <script src="CodeCompletion.js"></script>
+    <link rel="stylesheet" href="jquery-ui.css">
+    <link rel="icon" href="data:;base64,iVBORw0KGgo=">
+    <script type="text/javascript" src="w2ui-1.4.2.js"></script>
+
+    <style type="text/css" media="screen">
+        table.diff_text { border: 1px solid #bbb; }
+
+        table.diff_text td.lineno {
+            background: #ddd;
+            border-color: #bbb;
+            border-style: solid;
+            border-width: 0 1px;
+            color: #999;
+        }
+
+        table.diff_text td {
+            background: #FFFAFA;
+            border: none;
+        }
+
+        table.diff_text .add td.difftext { background: #DDFFDD; }
+
+        table.diff_text .del td.difftext { background: #FFDDDD; }
+
+        html, body {
+            height: 100%;
+            margin: 0px;
+            padding: 0px;
+        }
+
+        .w2ui-icon.icon-folder-star { background: url(img/generic_folder.png); }
+
+        .context-menu li.separator {
+            border-bottom: 1px solid #ddd;
+            cursor: default;
+            display: block;
+            margin: auto;
+            margin-bottom: 3px;
+            width: 90%;
+        }
+
+        #layout {
+            /* background: #0f0; */
+            height: 100%;
+            width: 100%;
+        }
+
+        .box {
+            border: 2px solid;
+            padding-left: 10px;
+            padding-right: 10px;
+        }
+
+        #expandright {
+            border: 2px solid;
+            border-radius: 5px;
+            padding-left: 10px;
+            padding-right: 10px;
+            position: absolute;
+            right: -49px;
+            top: 20%;
+            z-index: 200;
+        }
+
+        .vertical-text {
+            float: left;
+            transform: rotate(-90deg);
+            transform-origin: left top 0;
+        }
+
+        .tab {
+            border: 1px solid silver;
+            border-top: 0px;
+            display: none;
+            height: 100%;
+            overflow: auto;
+            padding: 10px;
+            width: 100%;
+        }
+
+        .ace-related-code-highlight {
+            background-color: yellow;
+            position: absolute;
+        }
+
+        .w2ui-layout > div .w2ui-panel .w2ui-panel-content {
+            color:
+                 
+        }
+
+        #overlay {
+            background-color: rgba(0, 0, 0, 0.5);
+            bottom: 0;
+            cursor: pointer;
+            display: none;
+            height: 100%;
+            left: 0;
+            position: fixed;
+            right: 0;
+            top: 0;
+            width: 100%;
+            z-index: 999;
+        }
+
+        .codeIdtooltip {
+            -moz-box-sizing: border-box;
+            -webkit-box-sizing: border-box;
+            background-color: #FFF;
+            background-image: -webkit-linear-gradient(top, transparent, rgba(0, 0, 0, 0.1));
+            background-image: linear-gradient(to bottom, transparent, rgba(0, 0, 0, 0.1));
+            border: 1px solid gray;
+            border-radius: 1px;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+            box-sizing: border-box;
+            color: black;
+            cursor: default;
+            font-style: normal;
+            font-weight: normal;
+            letter-spacing: normal;
+            line-height: normal;
+            max-width: 100%;
+            padding: 3px 4px;
+            pointer-events: none;
+            position: absolute;
+            white-space: pre;
+            word-wrap: break-word;
+            z-index: 999999;
+        }
+    </style>
+</head>
+<body>
+<div id="overlay" style="display: none;"></div>
+<div id="layout"></div>
+<div id="editor" style="display: none"></div>
+<div id="history" style="display: none"></div>
+<div id="rightbar" style="display: none">
+    <h3>Editor Settings:</h3>
+    <b>Theme:</b>
+
+    <br/>
+    <select id="edTheme">
+        <option value="none">None</option>
+        <option value="ambiance">Ambiance</option>
+        <option value="chaos">Chaos</option>
+        <option value="chrome">Chrome</option>
+        <option value="clouds">Clouds</option>
+        <option value="clouds_midnight">Clouds Midnight</option>
+        <option value="cobalt">Cobalt</option>
+        <option value="crimson">Crimson</option>
+        <option value="dawn">Dawn</option>
+        <option value="dreamweaver">Dreamweaver</option>
+        <option value="eclipse">Eclipse</option>
+        <option value="github">Github</option>
+        <option value="idle_fingers">Idle Fingers</option>
+        <option value="katzenmilch">Katzenmilch</option>
+        <option value="kr_theme">Kr Theme</option>
+        <option value="merbivore">Merbivore</option>
+        <option value="merbivore_soft">Merbivore Soft</option>
+        <option value="mono_industrial">Mono Industrial</option>
+        <option value="monokai">Monokai</option>
+        <option value="pastel_on_dark">Pastel On Dark</option>
+        <option value="solarized_dark">Solarized Dark</option>
+        <option value="solarized_light">Solarized Light</option>
+        <option value="terminal">Terminal</option>
+        <option value="textmate">Textmate</option>
+        <option value="tomorrow">Tomorrow</option>
+        <option value="tomorrow_night">Tomorrow Night</option>
+        <option value="tomorrow_night_blue">Tomorrow Night Blue</option>
+        <option value="tomorrow_night_bright">Tomorrow Night Bright</option>
+        <option value="tomorrow_night_eighties">Tomorrow Night Eighties</option>
+        <option value="twighlight">Twighlight</option>
+        <option value="vibrant_ink">Vibrant Ink</option>
+        <option value="xcode">Xcode</option>
+    </select>
+    <br/>
+    <br/> <b>Keyboard:</b>
+
+    <br/>
+    <select id="edKeyboard">
+        <option value="ace">None</option>
+        <option value="vim">VIM</option>
+        <option value="emacs">Emacs</option>
+    </select>
+</div>
+<div id="SelectScope" style="display: none; width: 450px; height: 150px; overflow: auto;">
+    <div rel="title">
+        Select Scope
+    </div>
+    <div rel="body" style="margin-top: 25px; margin-left: 30px">
+        <b>Select scope: </b>
+        <select id="edSelectScope"> </select>
+        <span id="results"></span>
+    </div>
+    <div rel="buttons">
+        <button class="btn" onclick="SelectScopeClick()">Ok</button>
+        <button class="btn" onclick="closeClick()">Cancel</button>
+    </div>
+</div>
+<div id="RenameCode" style="display: none; width: 450px; height: 150px; overflow: auto;">
+    <div rel="title">
+        Rename
+    </div>
+    <div rel="body" style="margin-top: 25px; margin-left: 30px">
+        <b>Enter new name: </b> <input type="text" id="renameinput"/>
+        <span id="results"></span>
+    </div>
+    <div rel="buttons">
+        <button class="btn" onclick="renameClick()">Ok</button>
+        <button class="btn" onclick="closeClick()">Cancel</button>
+    </div>
+</div>
+<div id="diffWindow" style="display: none; width: 900px; height: 400px; overflow: auto;">
+    <div rel="title">
+        Diff
+    </div>
+    <div id="tabDiff" rel="body">
+    </div>
+    <div rel="buttons">
+        <button class="btn" onclick="closeClick()">Cancel</button>
+    </div>
+</div>
+<div id="addScope" style="display: none; width: 650px; height: 200px; overflow: auto;">
+    <div rel="title">
+        Add Scope
+    </div>
+    <div rel="body" style="margin-top: 50px; margin-left: 50px">
+        <b>Enter new scope name: </b> <input type="text" id="addscopeinput"/>
+        <br/>
+        <b>System?</b><input type="checkbox" id="addscopesystem"/>
+        <span id="addscoperesults"></span>
+    </div>
+    <div rel="buttons">
+        <button class="btn" onclick="addScopeClick()">Add Scope</button>
+    </div>
+</div>
+<div id="addCode" style="display: none; width: 650px; height: 200px; overflow: auto;">
+    <div rel="title">
+        Add Scope
+    </div>
+    <div rel="body" style="margin-top: 10px; margin-left: 50px">
+        <b>Enter code name: </b> <input type="text" id="globalInputName"/>
+        <br/>
+        <b>System?</b><input type="checkbox" id="cbInputName"/>
+        <br/>
+        <b>Versioned?</b><input type="checkbox" id="cbVersioned" checked/>
+        <br/>
+        <b>Select code type: </b>
+        <select id="selCodeType">
+            <option>Python</option>
+            <option>CSS</option>
+            <option>Html</option>
+            <option>Javascript</option>
+        </select>
+        <span id="addcoderesults"></span>
+    </div>
+    <div rel="buttons">
+        <button class="btn" onclick="addCodeClick()">Add Code</button>
+    </div>
+</div>
+<div id="bottomTabs" style="display: none">
+    <div id="tabPreview" class="tab">
+        First tab.
+    </div>
+    <div id="tabTest" class="tab">
+        <button onclick="tabTestTest()">Compile!</button>&nbsp;&nbsp;<button onclick="tabTestDemo()">Execute Test()!</button>&nbsp;&nbsp;<button onclick="tabTeslaDemo()">Execute Tesla Test()!</button>
+        <br/><br/>
+        <textarea id="tabResults" style="width: 80%; height: 80%"></textarea>
+    </div>
+    <div id="tabHistory" class="tab">
+        <div id="dHistoryHead" style="height: 25px"></div>
+        <div id="dHistoryBody" style="height: 90%"></div>
+    </div>
+</div>
+
+<div id="bottomDiv" style="display: none">
+    Filter List...<br> <input type="text" id="txtSideFilter" onkeydown="return txtSideFilterDown(event);"/> <button type="button" onclick="filterTree();">Filter</button>
+</div>
+
+<script src="ace/ace.js" type="text/javascript" charset="utf-8"></script>
+<script src="ace/ext-language_tools.js" type="text/javascript" charset="utf-8"></script>
+<script src="ace/ext-statusbar.js" type="text/javascript" charset="utf-8"></script>
+<script src="jquery.contextMenu.min.js" type="text/javascript" charset="utf-8"></script>
+<script>
+    var editor;
+
+    var config = {
+        layout: {
+            name: 'layout',
+            panels: [
+                {
+                    type: 'top',
+                    size: 35,
+                    resizable: true,
+                    style: 'background: #4679bd; color: #fff; padding-left: 20px; padding-top: 10px',
+                    content:
+                        '<b>Monolith Editor</b><span style="padding-left: 20px;" id="titleinfo"></span><a style="float:right;margin-right:20px;color:white" href="/users/logout">Logout</a><a style="float:right;margin-right:20px;color:white" href="/users/" target="useredit">Users</a><a style="float:right;margin-right:20px;color:white" target="version" href="/version/">Versions</a><a class="box" style="float:right;margin-right:20px;color:white;margin-top:-4px" target="version" href="http://mcdn.trinity.secretwardialer.com/statemachine/StateMachineEditor.html">State Machine</a><span id="editorSettings" class="box" style="float:right; margin-right: 20px; margin-top: -4px">Show Editor Settings</span>'
+                }, {
+                    type: 'left',
+                    size: 250,
+                    resizable: true,
+                    content: 'left'
+                }, {
+                    type: 'main',
+                    style: '',
+                    content: 'main'
+
+                }, {
+                    type: 'preview',
+                    size: '20%',
+                    resizable: true,
+                    style: '',
+                    content: 'preview',
+                    tabs: {
+                        active: 'tabTest',
+                        tabs: [
+                            /*{
+                            id: 'tabPreview',
+                            caption: 'Preview'
+                        },*/
+                            {
+                                id: 'tabTest',
+                                caption: 'Test'
+                            }, {
+                                id: 'tabHistory',
+                                caption: 'History',
+                            }
+                        ],
+                        onClick: tabClickEvent
+                    }
+                }, {
+                    type: 'right',
+                    size: 200,
+                    resizable: true,
+                    style: '',
+                    content: 'right',
+                    overflow: 'hidden'
+                }, {
+                    type: 'bottom',
+                    size: 50,
+                    resizable: true,
+                    style: '',
+                    content: 'bottom'
+                }
+            ]
+        },
+        leftbar: {
+            name: 'sidebar',
+            nodes: [],
+            onClick: sidebarClick
+
+        }
+    };
+
+    function diff_text(text1, text2) {
+        var table = '';
+
+        function make_row(x, y, type, text) {
+            var row = '<tr';
+            if (type == '+') row += ' class="add"';
+            else if (type == '-') row += ' class="del"';
+            row += '>';
+
+            row += '<td class="lineno">' + y;
+            row += '<td class="lineno">' + x;
+            row += '<td class="difftext">' +
+                type +
+                ' ' +
+                text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+            table += row;
+        }
+
+        function get_diff(matrix, a1, a2, x, y) {
+            if (x > 0 && y > 0 && a1[y - 1] === a2[x - 1]) {
+                get_diff(matrix, a1, a2, x - 1, y - 1);
+                make_row(x, y, ' ', a1[y - 1]);
+            } else {
+                if (x > 0 && (y === 0 || matrix[y][x - 1] >= matrix[y - 1][x])) {
+                    get_diff(matrix, a1, a2, x - 1, y);
+                    make_row(x, '', '+', a2[x - 1]);
+                } else if (y > 0 && (x === 0 || matrix[y][x - 1] < matrix[y - 1][x])) {
+                    get_diff(matrix, a1, a2, x, y - 1);
+                    make_row('', y, '-', a1[y - 1]);
+                } else {
+                    return;
+                }
+            }
+        }
+
+        function diff(a1, a2) {
+            var matrix = new Array(a1.length + 1);
+            var x, y;
+
+            for (y = 0; y < matrix.length; y++) {
+                matrix[y] = new Array(a2.length + 1);
+
+                for (x = 0; x < matrix[y].length; x++) {
+                    matrix[y][x] = 0;
+                }
+            }
+
+            for (y = 1; y < matrix.length; y++) {
+                for (x = 1; x < matrix[y].length; x++) {
+                    if (a1[y - 1] === a2[x - 1]) {
+                        matrix[y][x] = 1 + matrix[y - 1][x - 1];
+                    } else {
+                        matrix[y][x] = Math.max(matrix[y - 1][x], matrix[y][x - 1]);
+                    }
+                }
+            }
+
+            get_diff(matrix, a1, a2, x - 1, y - 1);
+        }
+
+        diff(text1.split('\n'), text2.split('\n'));
+        return '<table class="diff_text">' + table + '</table>';
+    }
+
+    function tabTeslaDemo() {
+        var currentcode = editor.getValue();
+        if (currentcode.indexOf('def Test(') < 0) {
+            alert('Missing Test() function');
+            return;
+        }
+        $('div.w2ui-panel-content div#tabTest textarea#tabResults').val('checking...');
+        $.ajax({
+            url: "http://10.12.2.66:8000/WebApi.ashx?req=CodeDemo&xxxallowexception=1",
+            dataType: 'text',
+            type: "POST",
+            data: "code=" + encodeURIComponent(currentcode)
+        }).done(function(data) {
+            $('div.w2ui-panel-content div#tabTest textarea#tabResults').val(data);
+        }).fail(function(data, status) {
+            alert('DemoCode failed ' + status + ' ' + data.responseText);
+        });
+    }
+
+    function tabTestDemo() {
+        var currentcode = editor.getValue();
+        if (currentcode.indexOf('def Test(') < 0) {
+            alert('Missing Test() function');
+            return;
+        }
+        $('div.w2ui-panel-content div#tabTest textarea#tabResults').val('checking...');
+        $.ajax({
+            url: "WebApi.ashx?req=CodeDemo&xxxallowexception=1",
+            dataType: 'text',
+            type: "POST",
+            data: "code=" + encodeURIComponent(currentcode)
+        }).done(function(data) {
+            if (data.indexOf('<html>') != 0)
+                $('div.w2ui-panel-content div#tabTest textarea#tabResults').val(data);
+            else
+                $('div.w2ui-panel-content div#tabTest textarea#tabResults').val('Monolith session expired.');
+        }).fail(function(data, status) {
+            alert('DemoCode failed ' + status + ' ' + data.responseText);
+        });
+    }
+
+    function getDateTime() {
+        var now = new Date();
+        var year = now.getFullYear();
+        var month = now.getMonth() + 1;
+        var day = now.getDate();
+        var hour = now.getHours();
+        var minute = now.getMinutes();
+        var second = now.getSeconds();
+        if (month.toString().length == 1) {
+            var month = '0' + month;
+        }
+        if (day.toString().length == 1) {
+            var day = '0' + day;
+        }
+        if (hour.toString().length == 1) {
+            var hour = '0' + hour;
+        }
+        if (minute.toString().length == 1) {
+            var minute = '0' + minute;
+        }
+        if (second.toString().length == 1) {
+            var second = '0' + second;
+        }
+        var dateTime = year + '/' + month + '/' + day + ' ' + hour + ':' + minute + ':' + second;
+        return dateTime;
+    }
+
+    // Clear the current markers
+    function clearEditorAnnotations() {
+        var ses = editor.getSession();
+        var allmarkers = ses.getMarkers(false);
+        for (var m in allmarkers)
+            ses.removeMarker(m);
+        ses.clearAnnotations();
+    }
+
+    function tabTestTest() {
+        clearEditorAnnotations();
+
+        //Get the content from the ace window and put the output in the textarea
+        var currentcode = editor.getValue();
+        $('div.w2ui-panel-content div#tabTest textarea#tabResults').val('checking...');
+        $.ajax({
+            url: "WebApi.ashx?req=EvaluateCode&xxxallowexception=1",
+            dataType: 'text',
+            type: "POST",
+            data: "code=" + encodeURIComponent(currentcode)
+        }).done(function(datat) {
+            try {
+                var data = JSON.parse(datat);
+                $('div.w2ui-panel-content div#tabTest textarea#tabResults').val(data.Text + '\r\n' + getDateTime());
+                if (data.Text !== 'SUCCESS') {
+                    log(data);
+                    //Parse the range Span: (2,22) - (2,23)
+                    var ses = editor.getSession();
+                    var span = data.Span;
+                    var startx = parseInt(span.Start.Column) - 1;
+                    var starty = parseInt(span.Start.Line) - 1;
+                    var stopx = parseInt(span.End.Column) - 1;
+                    var stopy = parseInt(span.End.Line) - 1;
+                    console.log('error', span, startx, starty, stopx, stopy);
+                    var Range = ace.require("ace/range").Range;
+                    ses.addMarker(new Range(starty, startx, stopy, stopx), 'ace-related-code-highlight', 'fullLine');
+                    ses.setAnnotations([
+                        {
+                            row: starty,
+                            column: startx,
+                            text: data.Text,
+                            type: "warning" //also warning and information
+                        }
+                    ]);
+
+                }
+            } catch (e) {
+                $('div.w2ui-panel-content div#tabTest textarea#tabResults').val(datat + '\r\n' + getDateTime());
+            }
+        }).fail(function(data, status) {
+            alert('EvaluateCode failed ' + status + ' ' + data.responseText);
+        });
+    }
+
+    function historyTabLoad(id) {
+        var tobj1 = $('.w2ui-panel-content #tabHistory');
+        var tobj = $('#dHistoryBody');
+        console.log('histbody', tobj, tobj.length);
+
+        var codeid = id.replace("v", "").replace("es", "");
+        console.log('histbody. CodeID =', codeid);
+        $().w2destroy('codeHistory');
+        $('#dHistoryHead').html('History for code ' + codeid);
+        var g = tobj.w2grid({
+            name: 'codeHistory',
+            fixedBody: true,
+            fixedRecord: true,
+            multiSelect: false,
+            columns: [
+                { field: 'CodeId', caption: 'Code ID', size: '150px', render: 'int' },
+                { field: 'CodeName', caption: 'Name', size: '150px' },
+                { field: 'CodeInsertBy', caption: 'InsertBy', size: '150px' },
+                { field: 'CodeIsSystem', caption: 'IsSystem', size: '150px' },
+                { field: 'CodeType', caption: 'Type', size: '150px' },
+                { field: 'CodeInsertDate', caption: 'InsertDate', size: '150px', render: 'date' },
+                { field: 'CodeInsertDate', caption: 'Time', size: '150px', render: 'time' }
+            ],
+            menu: [
+                { id: 1, text: 'diff' }
+            ],
+            onMenuClick: function(target, event) {
+                var menuid = event.menuItem.id;
+
+                if (menuid == 1) {
+                    var recid = event.recid;
+                    log(recid);
+                    $.ajax({
+                        url: "WebApi.ashx?req=Code&id=" + recid + '&xxxallowexception=1',
+                        dataType: 'json',
+                        type: "POST",
+                    }).done(function(data) {
+                        //                            log(data.CodeValue);
+                        var dTxt = diff_text(data.CodeValue, editor.getSession().getValue());
+                        $('#tabDiff').html(dTxt);
+                        $("#diffWindow").w2popup();
+                    });
+                }
+            },
+            onDblClick: function(event) {
+                var recid = event.recid;
+                loadScript(recid, true);
+            }
+        });
+
+        $.ajax({
+            url: "WebApi.ashx?req=CodeHistory&codeid=" + codeid + '&xxxallowexception=1',
+            dataType: 'json',
+            type: "POST",
+        }).done(function(data) {
+            if (data.hasOwnProperty('Text')) {
+                $('#dHistoryHead').html('History for code ' + codeid + ". " + data.Text);
+                console.log('History for code ' + codeid + ". " + data.Text);
+            } else {
+                //console.log('codehistory', data);
+                var iar = [];
+                for (var i in data) {
+                    var to = data[i];
+                    iar.push({
+                        recid: to.CodeId,
+                        CodeId: to.CodeId,
+                        CodeName: to.CodeName,
+                        CodeInsertBy: to.CodeInsertBy,
+                        CodeIsSystem: to.CodeIsSystem,
+                        CodeType: to.CodeType,
+                        CodeInsertDate: to.CodeInsertDate
+                    });
+                }
+                g.add(iar);
+            }
+        }).fail(function(status, exception) {
+            console.log("historyTabLoad. Status " + status + " ; except: " + exception);
+            console.log(status);
+            console.log(exception);
+        });
+    }
+
+    function tabClickEvent(event) {
+        $('.w2ui-panel-content .tab').hide();
+        $('.w2ui-panel-content #' + event.target).show();
+        console.log(event);
+        if (event.target === "tabHistory") {
+            if (openScriptId != undefined)
+                historyTabLoad(openScriptId);
+        }
+    }
+
+    function txtSideFilterDown(event) {
+        var evt = event || window.event;
+        if (evt.keyCode == 13) {
+            filterTree();
+            return false;
+        }
+    }
+
+    function filterTree() {
+        var sb = w2ui['sidebar'];
+        var an = sb.get();
+        var searchtext = $('#txtSideFilter').val().toUpperCase();
+        if (searchtext === '') {
+            for (var a in an) {
+                sb.show(an[a]);
+            }
+            return;
+        }
+        var hide = [];
+        var show = [];
+        $.each(an,
+            function(index, value) {
+                var snode = sb.get(value);
+                if (snode) {
+
+                    var nodetext = snode.text.toUpperCase();
+                    var searchresult = nodetext.indexOf(searchtext) > -1;
+                    //console.log('test',value,snode,nodetext,searchresult,searchtext);
+                    if (searchresult || snode.id === '0') {
+                        show.push(snode.id);
+                        //Traverse up the tree
+                        if (snode.parent) {
+                            var nnode = snode;
+                            while (nnode.parent) {
+                                if ($.inArray(nnode.id, show) == -1) {
+                                    show.push(nnode.id);
+                                }
+                                nnode = nnode.parent;
+                            }
+                        }
+                        if (snode.nodes) {
+                            $.each(snode.nodes,
+                                function(index, value) {
+                                    if ($.inArray(value.id, show) == -1) {
+                                        show.push(value.id);
+                                    }
+                                });
+                        }
+
+                    } else {
+                        hide.push(snode.id);
+                    }
+                }
+            });
+        for (var a in hide) {
+            sb.hide(hide[a]);
+        }
+        for (var a in show) {
+            sb.show(show[a]);
+            sb.expand(show[a]);
+        }
+        w2ui['sidebar'].refresh();
+    }
+
+    function log(data) {
+        if (console && console.log) {
+            console.log(data);
+        }
+    }
+
+    function sidebarClick(event) {
+        //type: click, phase: before, target: 4, isStopped: false, isCancelled: false
+        var ro = true;
+        var nodeid = event.target;
+        if (nodeid in editsess) ro = false;
+        if ("es" + nodeid in editsess) ro = false;
+        if (nodeid.indexOf("v") == 0)
+            nodeid = nodeid.substr(1);
+        if (nodeid.indexOf("sc") == 0)
+            return;
+        if (nodeid == 0)
+            return;
+        loadScript(nodeid, ro);
+    }
+
+    var editsess = {};
+
+    var loadedscript;
+    var openScriptId = undefined;
+
+    function loadScript(id, readonly) {
+        log("loadscript: " + id + " " + readonly);
+        var oid;
+        if (id in editsess) oid = id;
+        if ("es" + id in editsess) oid = 'es' + id;
+        loadedscript = oid;
+        if (oid) {
+            log("found oid " + oid);
+            var s = editsess[oid];
+            $('#titleinfo').html("Editing: " + s.data.CodeName + " (" + s.data.CodeId + ")");
+            editor.setSession(s.es);
+            editor.setReadOnly(readonly); //TODO turnback on
+            if (!readonly) {
+                $('#titleinfo').html("Editing: " + s.data.CodeName + " (" + s.data.CodeId + ")");
+            } else {
+                $('#titleinfo').html("Editing: " +
+                    s.data.CodeName +
+                    " (" +
+                    s.data.CodeId +
+                    ")  <b style='color: crimson'>READONLY</b>");
+            }
+            historyTabLoad(id);
+            openScriptId = id;
+            //FileInfo.checkOpenFileDirty(); //TODO turn back on
+            return;
+        }
+        log(" before load ");
+        $.ajax({
+            url: "WebApi.ashx?req=Code&id=" + id + '&xxxallowexception=1',
+            dataType: 'json',
+            type: "POST",
+        }).done(function(data) {
+            console.log(data);
+            if (data.hasOwnProperty('Text')) {
+                alert(data.Text);
+            } else if (data.hasOwnProperty('relogin')) {
+                document.cookie = "madmin= ; expires = Thu, 01 Jan 1970 00:00:00 GMT";
+                window.location.replace("/");
+            } else {
+                var codemode = "ace/mode/" + data.CodeType.toLowerCase();
+                var editsession = ace.createEditSession(data.CodeValue, codemode);
+
+                editor.setSession(editsession);
+                editor.setReadOnly(readonly);
+                if (!readonly) {
+                    editsess['es' + data.CodeId] = {
+                        es: editsession,
+                        data: data
+                    };
+
+                    w2ui['sidebar'].add("0",
+                        {
+                            id: 'es' + data.CodeId,
+                            text: data.CodeName,
+                            es: editsession
+                        });
+
+                    $('#titleinfo').html("Editing: " + data.CodeName + " (" + data.CodeId + ")");
+                } else {
+                    $('#titleinfo').html("Editing: " +
+                        data.CodeName +
+                        " (" +
+                        data.CodeId +
+                        ")  <b style='color: crimson'>READONLY</b>");
+                }
+            }
+        }).fail(function(data, status) {
+            console.log(status);
+            console.log(data);
+        });
+        log(" after load ");
+        historyTabLoad(id);
+        openScriptId = id;
+    }
+
+    var lastload = [];
+
+    function updateSidebar() {
+        log("Updating sidebar...");
+
+        $('#overlay').show();
+
+        $.ajax({
+            url: "WebApi.ashx?req=Tree&xxxallowexception=1",
+            dataType: 'json',
+            type: "POST"
+        }).done(function(data) {
+            //if (isEqual(data,lastload)) {
+            //    console.log('Not updating table no changes');
+            //    return;
+            //}
+            lastload = data;
+            // console.log(data);
+            var expandednodes = w2ui['sidebar'].find({ expanded: true });
+            w2ui['sidebar'].nodes = [];
+            var select = $('#edSelectScope');
+            $('option', select).remove();
+            w2ui['sidebar'].add({
+                id: '0',
+                text: "Edit Sessions",
+                expanded: true
+            });
+            for (var index in editsess) {
+                var item = editsess[index];
+                w2ui['sidebar'].add("0",
+                    {
+                        id: index,
+                        text: item.data.CodeName + '(' + index + ')',
+                        es: item.es
+                    });
+            }
+
+            recursiveAddNodes(null, data, 0);
+            for (var exnode in expandednodes) {
+                var nid = expandednodes[exnode].id;
+                var fnode = w2ui['sidebar'].get(nid);
+                if (fnode) {
+                    //console.log('expanding node',nid,fnode);
+                    w2ui['sidebar'].expandParents(nid);
+                    w2ui['sidebar'].expand(nid);
+                } else {
+                    console.log('updateSidebar unable to locate node', nid);
+                }
+            }
+            w2ui['sidebar'].refresh();
+
+            $('#overlay').hide();
+
+        }).fail(function() {
+            alert("Update sidebar api call failed.");
+            $('#overlay').hide();
+        });
+    }
+
+    var isEqual = function(value, other) {
+
+        // Get the value type
+        var type = Object.prototype.toString.call(value);
+
+        // If the two objects are not the same type, return false
+        if (type !== Object.prototype.toString.call(other)) return false;
+
+        // If items are not an object or array, return false
+        if (['[object Array]', '[object Object]'].indexOf(type) < 0) return false;
+
+        // Compare the length of the length of the two items
+        var valueLen = type === '[object Array]' ? value.length : Object.keys(value).length;
+        var otherLen = type === '[object Array]' ? other.length : Object.keys(other).length;
+        if (valueLen !== otherLen) return false;
+
+        // Compare two items
+        var compare = function(item1, item2) {
+
+            // Get the object type
+            var itemType = Object.prototype.toString.call(item1);
+
+            // If an object or array, compare recursively
+            if (['[object Array]', '[object Object]'].indexOf(itemType) >= 0) {
+                if (!isEqual(item1, item2)) return false;
+            }
+            // Otherwise, do a simple comparison
+            else {
+
+                // If the two items are not the same type, return false
+                if (itemType !== Object.prototype.toString.call(item2)) return false;
+
+                // Else if it's a function, convert to a string and compare
+                // Otherwise, just compare
+                if (itemType === '[object Function]') {
+                    if (item1.toString() !== item2.toString()) return false;
+                } else {
+                    if (item1 !== item2) return false;
+                }
+
+            }
+        };
+
+        // Compare properties
+        if (type === '[object Array]') {
+            for (var i = 0; i < valueLen; i++) {
+                if (compare(value[i], other[i]) === false) return false;
+            }
+        } else {
+            for (var key in value) {
+                if (value.hasOwnProperty(key)) {
+                    if (compare(value[key], other[key]) === false) return false;
+                }
+            }
+        }
+
+        // If nothing failed, return true
+        return true;
+
+    };
+
+    function recursiveAddNodes(parent, value, level) {
+        var select = $('#edSelectScope');
+
+        $.each(value.Nodes,
+            function(index, value2) {
+                var imgfolder = value2.CodeIsSystem ? 'fa fa-folder fa-lg' : 'fa fa-folder-o fa-lg';
+                var imgfile = value2.CodeIsSystem ? 'fa fa-file-text fa-lg' : 'fa fa-file-text-o fa-lg';
+                if (value2.CodeIsScope) {
+                    var prefix = '';
+                    for (var i = 0; i < level; i++) {
+
+                        prefix += '-- ';
+                    }
+
+                    select.append(new Option(prefix + value2.CodeName, value2.CodeId));
+                    if (parent) {
+                        w2ui['sidebar'].add(parent,
+                            {
+                                id: "sc" + value2.CodeId,
+                                text: value2.CodeName,
+                                icon: imgfolder,
+                                //expanded: true
+                            });
+                    } else {
+                        w2ui['sidebar'].add({
+                            id: "sc" + value2.CodeId,
+                            text: value2.CodeName,
+                            icon: imgfolder,
+                            //expanded: true
+                        });
+                    }
+                    if (value2.Nodes && value2.Nodes.length > 0)
+                        recursiveAddNodes("sc" + value2.CodeId.toString(), value2, level + 1);
+                } else if (!value2.CodeIsScope && value2.Nodes && value2.Nodes.length > 0) {
+                    if (parent) {
+                        w2ui['sidebar'].add(parent,
+                            {
+                                id: 'v' + value2.CodeId,
+                                text: value2.CodeName + ' (' + value2.CodeId + ')',
+                                icon: imgfile
+                                //count: 1
+                            });
+                    } else {
+                        w2ui['sidebar'].add({
+                            id: 'v' + value2.CodeId,
+                            text: value2.CodeName + ' (' + value2.CodeId + ')',
+                            icon: imgfile
+                            //count: 1
+                        });
+                    }
+                    //Disable version load
+                } else {
+                    var txt = value2.CodeRevision ? value2.CodeRevision + ' ' + value2.CodeName : value2.CodeName;
+                    if (parent) {
+                        w2ui['sidebar'].add(parent,
+                            {
+                                id: value2.CodeId,
+                                text: txt + ' (' + value2.CodeId + ')',
+                                icon: imgfile
+                                //count: 1
+                            });
+                    } else {
+                        w2ui['sidebar'].add({
+                            id: value2.CodeId,
+                            text: txt + ' (' + value2.CodeId + ')',
+                            icon: imgfile
+                            //count: 1
+                        });
+                    }
+                }
+
+            });
+    }
+
+    function rclickSession(key, options) {
+        //key = save,close
+        var nodeid = options.$trigger.attr('id').substr(5);
+
+        if (key === "close") {
+            log("Close removing Nodeid: " + nodeid);
+            //Remove the node and editsession
+            if (w2ui['sidebar'].get(nodeid).selected) {
+                w2ui['sidebar'].unselect(nodeid);
+            }
+            w2ui['sidebar'].remove(nodeid);
+            delete editsess[nodeid];
+            //revert the current edit session to readonly
+            loadScript(nodeid.replace('es', ''), true);
+
+        } else if (key === "save") {
+            saveCurrentCode(nodeid, false);
+        } else if (key === "saveclose") {
+            saveCurrentCode(nodeid, true);
+        } else if (key === 'diff') {
+            var id = nodeid.replace('es', '');
+            $.ajax({
+                url: "WebApi.ashx?req=Code&id=" + id + '&xxxallowexception=1',
+                dataType: 'json',
+                type: "POST",
+            }).done(function(data) {
+                var dTxt = diff_text(data.CodeValue, editor.getSession().getValue());
+                // log(dTxt);
+                $('#tabDiff').html(dTxt);
+                $('#diffWindow').resizable({});
+                $("#diffWindow").w2popup();
+                $('#diffWindow').resizable({});
+            });
+        }
+    }
+
+    function DoHaveChanges(text1, text2) {
+        function get_diff(matrix, a1, a2, x, y) {
+            if (x > 0 && y > 0 && a1[y - 1] === a2[x - 1])
+                return get_diff(matrix, a1, a2, x - 1, y - 1);
+            else {
+                if (x > 0 && (y === 0 || matrix[y][x - 1] >= matrix[y - 1][x]))
+                    return true;
+                else if (y > 0 && (x === 0 || matrix[y][x - 1] < matrix[y - 1][x]))
+                    return true;
+                else
+                    return false;
+            }
+        }
+
+        function diff(a1, a2) {
+            var matrix = new Array(a1.length + 1);
+            var x, y;
+
+            for (y = 0; y < matrix.length; y++) {
+                matrix[y] = new Array(a2.length + 1);
+
+                for (x = 0; x < matrix[y].length; x++)
+                    matrix[y][x] = 0;
+            }
+
+            for (y = 1; y < matrix.length; y++) {
+                for (x = 1; x < matrix[y].length; x++) {
+                    if (a1[y - 1] === a2[x - 1])
+                        matrix[y][x] = 1 + matrix[y - 1][x - 1];
+                    else
+                        matrix[y][x] = Math.max(matrix[y - 1][x], matrix[y][x - 1]);
+                }
+            }
+
+            return get_diff(matrix, a1, a2, x - 1, y - 1);
+        }
+
+        return diff(text1.split('\n'), text2.split('\n'));
+    }
+
+
+    function saveCurrentCode(nodeid, close) {
+        var currentcode = editor.getValue();
+        var cs = editsess[loadedscript];
+        var codeid = cs.data.CodeId;
+        currentcode = encodeURIComponent(currentcode);
+
+        // compare code (the same or not)
+        var wasCodeChanged = false;
+
+        $('#overlay').show();
+
+        $.ajax({
+            url: "WebApi.ashx?req=Code&id=" + codeid + '&xxxallowexception=1',
+            dataType: 'json',
+            type: "POST",
+            timeout: 60000
+        }).done(function(data) {
+            wasCodeChanged = DoHaveChanges(currentcode, encodeURIComponent(data.CodeValue));
+
+            if (!wasCodeChanged) {
+                alert('No changes detected');
+                $('#overlay').hide();
+                return;
+            }
+
+            var formdata = "code=" + currentcode;
+            $.ajax({
+                url: "WebApi.ashx?req=SaveCode&codeid=" + codeid,
+                dataType: 'text',
+                type: "POST",
+                data: formdata,
+                timeout: 60000
+            }).done(function(data) {
+                console.log(data);
+                if (data !== 'SUCCESS') {
+                    alert(data);
+                    $('#overlay').hide();
+                    return;
+                }
+                if (close) {
+                    if (w2ui['sidebar'].get(nodeid).selected) {
+                        w2ui['sidebar'].unselect(nodeid);
+                    }
+                    w2ui['sidebar'].remove(nodeid);
+                    delete editsess[nodeid];
+                    loadScript(nodeid.replace('es', ''), true);
+                }
+                updateSidebar();
+                // after saving update the loaded CodeValue in editsess data
+                try {
+                    editsess[loadedscript].data.CodeValue = editor.getValue();
+                    //FileInfo.checkOpenFileDirty();
+                } catch (err) {
+                    console.log('ERROR UPDATING CODE VALUE: ' + err);
+                }
+                $('#overlay').hide();
+            }).fail(function(data, status) {
+                console.log("save failed", data, status);
+                alert("saveCurrentCode api call failed.");
+                $('#overlay').hide();
+            });
+        }).fail(function(data, status) {
+            if (data.responseText != undefined && data.responseText.indexOf('<html>') != -1) {
+                alert('Session expired, login in another window');
+                $('#overlay').hide();
+                return;
+            }
+            console.log("save failed", data, status);
+            alert("saveCurrentCode api call failed.");
+            $('#overlay').hide();
+        });
+    }
+
+    function setCookie(cname, cvalue, exdays) {
+        var d = new Date();
+        d.setTime(d.getTime() + (exdays * 24 * 60 * 60 * 1000));
+        var expires = "expires=" + d.toUTCString();
+        document.cookie = cname + "=" + cvalue + "; " + expires;
+    }
+
+    function getCookie(cname) {
+        var name = cname + "=";
+        var ca = document.cookie.split(';');
+        for (var i = 0; i < ca.length; i++) {
+            var c = ca[i];
+            while (c.charAt(0) == ' ') c = c.substring(1);
+            if (c.indexOf(name) == 0) return c.substring(name.length, c.length);
+        }
+        return "";
+    }
+
+
+    var currentScope = "";
+
+    function rclickScope(key, options) {
+        var nodeid = options.$trigger.attr('id').substr(7);
+        currentScope = nodeid;
+        log(" rclickScope clicked: " + key + " nodeid: " + nodeid);
+        if (key === "addscope") {
+            $("#addScope").w2popup();
+        } else if (key === "addcode") {
+            $("#addCode").w2popup();
+        } else if (key == "folderrename") {
+            $("#RenameCode").w2popup();
+        }
+    }
+
+    function rclickGlobal(key, options) {
+        var m = " rclickGlobal clicked: " + key;
+        log(m);
+        currentScope = "";
+        if (key == "filerename") {
+            $("#RenameCode").w2popup();
+        } else {
+            $("#addScope").w2popup();
+        }
+    }
+
+    function rclickNode(key, options) {
+        var m = " rclickGlobal clicked: " + key;
+        log(m);
+        if (key == "filerename") {
+            $("#RenameCode").w2popup();
+        } else if (key == "moveTo") {
+            $("#SelectScope").w2popup();
+        } else {
+            var nodeid = options.$trigger.attr('id').substr(5);
+            log("Nodeid: " + nodeid);
+            if (nodeid.indexOf("v") == 0)
+                nodeid = nodeid.substr(1);
+            if (nodeid.indexOf("sc") == 0)
+                return;
+            loadScript(nodeid, false);
+        }
+    }
+
+    function renameClick() {
+        var oldKey = w2ui['sidebar'].selected;
+
+        var newName = $(".w2ui-msg-body > #renameinput").first().val();
+        var v_id = 0;
+
+        if (oldKey.substring(0, 1) == 'v') {
+            v_id = oldKey.substring(1);
+        } else if (oldKey.substring(0, 2) == 'sc') {
+            v_id = oldKey.substring(2);
+        } else {
+            v_id = oldKey;
+        }
+
+        var weburl = "WebApi.ashx?req=RenameCode&pid=" + v_id + "&codename=" + newName;
+        console.log("Rename", v_id, newName);
+        console.log("click add", weburl);
+
+        $.ajax({
+            url: weburl,
+            dataType: 'text',
+            type: "POST"
+        }).done(function(data) {
+            console.log(data);
+            if (data === "SUCCESS") {
+                $(".w2ui-msg-body > #results").css('color', 'green').html(data);
+                w2popup.close();
+                //TODO trigger sidebar reload
+            } else {
+                $(".w2ui-msg-body > #results").css('color', 'red').html(data);
+            }
+            updateSidebar();
+        }).fail(function(data, status) {
+            alert("Rename code was failed", data, status);
+            alert("Rename code api call failed.");
+            updateSidebar();
+        });
+    }
+
+    function closeClick() {
+        w2popup.close();
+    }
+
+    function SelectScopeClick() {
+        var codeID = w2ui['sidebar'].selected;
+        console.log("SelectScopeClick CodeID=", codeID);
+        var scopeID = $(".w2ui-msg-body > #edSelectScope option:selected").val();
+        console.log("SelectScopeClick ScopeID=", scopeID);
+
+        var v_id = 0;
+
+        if (codeID.substring(0, 1) == 'v') {
+            v_id = codeID.substring(1);
+        } else {
+            v_id = codeID;
+        }
+
+        var weburl = "WebApi.ashx?req=MoveCode&codeID=" + v_id + "&newScopeID=" + scopeID;
+        console.log("SelectScopeClick", weburl);
+
+        $.ajax({
+            url: weburl,
+            dataType: 'text',
+            type: "POST"
+        }).done(function(data) {
+            console.log(data);
+            if (data === "SUCCESS") {
+                $(".w2ui-msg-body > #results").css('color', 'green').html(data);
+                w2popup.close();
+                //TODO trigger sidebar reload
+            } else {
+                $(".w2ui-msg-body > #results").css('color', 'red').html(data);
+            }
+            updateSidebar();
+        }).fail(function() {
+            alert("Move code api call failed.");
+            updateSidebar();
+        });
+    }
+
+    function addScopeClick() {
+        var newscope = $(".w2ui-msg-body > #addscopeinput").first().val();
+        var isSystem = $(".w2ui-msg-body > #addscopesystem").first().is(':checked');
+        l_currentScope = currentScope;
+        if (!l_currentScope) {
+            l_currentScope = -1;
+
+        }
+        var weburl = "WebApi.ashx?req=NewScope&pid=" +
+            l_currentScope +
+            "&scopename=" +
+            newscope +
+            "&issystem=" +
+            isSystem.toString();
+        console.log("click add", newscope, weburl);
+        $.ajax({
+            url: weburl,
+            dataType: 'text',
+            type: "POST"
+        }).done(function(data) {
+            console.log(data);
+            if (data === "SUCCESS") {
+                $(".w2ui-msg-body > #addscoperesults").css('color', 'green').html(data);
+                w2popup.close();
+                //TODO trigger sidebar reload
+            } else {
+                $(".w2ui-msg-body > #addscoperesults").css('color', 'red').html(data);
+            }
+            updateSidebar();
+        }).fail(function(data, status) {
+            console.log("save failed", data, status);
+            alert("AddScope api call failed.");
+            updateSidebar();
+        });
+    }
+
+    function addCodeClick() {
+        var newscope = $(".w2ui-msg-body > #globalInputName").first().val();
+        var isSystem = $(".w2ui-msg-body > #cbInputName").first().is(':checked');
+        var isVersioned = $(".w2ui-msg-body > #cbVersioned").first().is(':checked');
+        var codetype = $(".w2ui-msg-body > #selCodeType option:selected").text();
+        var weburl = "WebApi.ashx?req=NewCode&pid=" +
+            currentScope +
+            "&codename=" +
+            newscope +
+            "&issystem=" +
+            isSystem.toString() +
+            "&codetype=" +
+            codetype +
+            "&isversioned=" +
+            isVersioned;
+        console.log("click add", newscope, weburl);
+        $.ajax({
+            url: weburl,
+            dataType: 'text',
+            type: "POST"
+        }).done(function(data) {
+            console.log(data);
+            if (data === "SUCCESS") {
+                $(".w2ui-msg-body > #addcoderesults").css('color', 'green').html(data);
+                w2popup.close();
+                //TODO trigger sidebar reload
+            } else {
+                $(".w2ui-msg-body > #addcoderesults").css('color', 'red').html(data);
+            }
+            updateSidebar();
+        }).fail(function() {
+            alert("AddCode api call failed.");
+            updateSidebar();
+        });
+    }
+
+    function edThemeChange(editor, themeName) {
+        if (!themeName || themeName === 'theme') return;
+        editor.setTheme("ace/theme/" + themeName.toLowerCase());
+        setCookie('edTheme', themeName.toLowerCase(), 365);
+    }
+
+    function edKeyboardChange(editor, edKeyboardName) {
+        if (!edKeyboardName) {
+            editor.setKeyboardHandler('');
+            return;
+        }
+        if (edKeyboardName === 'ace')
+            editor.setKeyboardHandler('');
+        else
+            editor.setKeyboardHandler('ace/keyboard/' + edKeyboardName);
+        setCookie('edKeyboard', edKeyboardName.toLowerCase(), 365);
+    }
+
+    var statEditorSettings = false;
+    var closeWarning = false;
+    $(function() {
+
+        //---------- W2UI Options ---------------
+        $('#layout').w2layout(config.layout);
+        w2ui.layout.content('main', ''); //This sets the content for the editor
+        w2ui.layout.content('left', $().w2sidebar(config.leftbar));
+        w2ui.layout.content('right', $('#rightbar').html());
+        w2ui.layout.content('preview', $('#bottomTabs').html());
+        w2ui.layout.content('bottom', $('#bottomDiv').html());
+        w2ui['layout'].hide('right', true);
+        //w2ui['layout'].hide('bottom', true);
+        //Load the sidebar
+        updateSidebar();
+        $('.w2ui-panel-content #tabTest').show();
+
+        $("#editorSettings").click(function() {
+            statEditorSettings = !statEditorSettings;
+            if (statEditorSettings) w2ui['layout'].show('right');
+            else w2ui['layout'].hide('right');
+        });
+
+        w2ui.layout.on('resize',
+            function(event) {
+                event.onComplete = function() {
+                    console.log('w2ui layout on resize', event);
+                    editor.resize(false);
+                    editor.setAutoScrollEditorIntoView(true);
+                };
+            });
+
+        //clicks on edit session item
+        $.contextMenu({
+            selector: 'div[id^=node_es][class*="w2ui-node"]',
+            callback: rclickSession,
+            items: {
+                "diff": {
+                    name: "Diff"
+                },
+                "hr": { class: "separator" },
+                "save": {
+                    name: "Save"
+                },
+                "saveclose": {
+                    name: "Save & Close"
+                },
+                "hr": { class: "separator" },
+                "close": {
+                    name: "Close"
+                }
+            }
+        });
+
+        //clicks on node
+        $.contextMenu({
+            selector: 'div:not([id^=node_es])[class*="w2ui-node"]:not([id^=node_sc])',
+            callback: rclickNode,
+            items: {
+                "edit": {
+                    name: "EditNode"
+                },
+                "moveTo": {
+                    name: "Move To..."
+                },
+                "hr": { class: "separator" },
+                "filerename": {
+                    name: "Rename"
+                }
+            }
+        });
+
+        //click on node group, add scope below this one
+        $.contextMenu({
+            selector: '.w2ui-node[id^=node_sc]',
+            callback: rclickScope,
+            items: {
+                "addscope": {
+                    name: "Add Scope",
+                },
+                "addcode": {
+                    name: "Add Code"
+                },
+                "hr": {
+                    class: "separator"
+                },
+                //"folderrename": {
+                //    name: "Rename"
+                //}
+            }
+        });
+        //clicks on nothing on left
+        $.contextMenu({
+            selector: '.w2ui-sidebar-div',
+            callback: rclickGlobal,
+            items: {
+                "addscope": {
+                    name: "Add Scope Global"
+                }
+            }
+        });
+
+        //---------- ACE Options ---------------
+        ace.require("ace/edit_session");
+        ace.require("ace/ext/language_tools");
+        ace.require("ace/range");
+        editor = ace.edit(w2ui.layout.el('main'));
+        //            editor.setTheme("ace/theme/github");
+        editor.getSession().setMode("ace/mode/javascript");
+        editor.setOptions({
+            tabSize: 4,
+            enableBasicAutocompletion: true,
+            enableLiveAutocompletion: true,
+            highlightActiveLine: true,
+            enableSnippets: true,
+            useSoftTabs: true,
+            showFoldWidgets: true,
+            foldStyle: 'markbegin',
+            fadeFoldWidgets: false,
+            //showInvisibles: true,
+            showGutter: true,
+            animatedScroll: true,
+            highlightSelectedWord: true,
+            hScrollBarAlwaysVisible: false,
+            vScrollBarAlwaysVisible: false
+
+        });
+        $('#edTheme').change(function() {
+            edThemeChange(editor, $(this).val());
+        });
+
+        var edTheme_select = getCookie('edTheme');
+        $('#edTheme option[value="' + edTheme_select + '"]').prop('selected', true);
+        edThemeChange(editor, edTheme_select);
+
+        //getting the keyboard handler returns an object
+        $('#edKeyboard').change(function() {
+            edKeyboardChange(editor, $(this).val());
+        });
+
+        var edKeyboard_select = getCookie('edKeyboard');
+        $('#edKeyboard option[value="' + edKeyboard_select + '"]').prop('selected', true);
+        edKeyboardChange(editor, edKeyboard_select);
+
+        // add command to lazy-load keybinding_menu extension
+        editor.commands.addCommand({
+            name: "showKeyboardShortcuts",
+            bindKey: {
+                win: "Ctrl-Alt-h",
+                mac: "Command-Alt-h"
+            },
+            exec: function(editor) {
+                ace.config.loadModule("ace/ext/keybinding_menu",
+                    function(module) {
+                        module.init(editor);
+                        editor.showKeyboardShortcuts();
+                    });
+            }
+        });
+
+        //editor.execCommand("showKeyboardShortcuts");
+        editor.commands.addCommands([
+            {
+                name: "showSettingsMenu",
+                bindKey: {
+                    win: "Ctrl-Alt-q",
+                    mac: "Command-Alt-q"
+                },
+                exec: function(editor) {
+                    ace.config.loadModule("ace/ext/settings_menu",
+                        function(module) {
+                            module.init(editor);
+                            editor.showSettingsMenu();
+                        });
+                },
+                readOnly: true
+            }
+        ]);
+
+        editor.on("mousemove",
+            function(e) {
+                var position = e.getDocumentPosition();
+                findCodeName(position);
+            });
+
+        window.onbeforeunload = function() {
+            if (closeWarning || Object.keys(editsess).length > 0) {
+                return 'You have unsaved changes.';
+            }
+        };
+
+        //FileInfo.init();
+        CodeCompletion.init();
+    });
+    $(window).resize(function() {
+        console.log('jquery window resize');
+        w2ui['layout'].resize();
+        editor.resize(true);
+        editor.setAutoScrollEditorIntoView(true);
+    });
+
+    // update tooltip for editor
+    function updateTooltip(position, text) {
+        var div = document.getElementById('tooltip_0');
+        if (div === null) {
+            div = document.createElement('div');
+            div.setAttribute('id', 'tooltip_0');
+            div.setAttribute('class', 'codeIdtooltip'); // and make sure myclass has some styles in css
+            document.body.appendChild(div);
+        }
+
+        div.style.left = position.pageX + 'px';
+        div.style.top = position.pageY + 'px';
+        if (text) {
+            div.style.display = "block";
+            div.innerText = text;
+        } else {
+            div.style.display = "none";
+            div.innerText = "";
+        }
+    };
+
+    // find name of python code mouse is hovering over
+    function findCodeName(position) {
+        try {
+            var toolTipText = '';
+            if (position) {
+                var wordRange = editor.getSession().getWordRange(position.row, position.column);
+                var text = editor.session.getTextRange(wordRange);
+
+                if (text.indexOf('PythonGetAndRun') !== -1 || text.indexOf('PythonGetCode') !== -1) {
+                    var line = editor.getSession().getLine(position.row);
+                    if (line != undefined && line.match != undefined) {
+
+                        var numbers = line.match(/\d+/g);
+
+                        if (numbers)
+                            numbers = numbers.map(Number);
+
+                        if (numbers.length) {
+                            text = numbers[0];
+
+                            function findNameInNodesById(id, start, nodes) {
+                                for (var i = start; i < nodes.length; i++) {
+
+                                    if (Number.isInteger(nodes[i].id) ||
+                                    (nodes[i].id != undefined &&
+                                        nodes[i].id.indexOf != undefined &&
+                                        nodes[i].id.indexOf("v") == 0)) {
+                                        var digits = nodes[i].text.match(/\d+/);
+                                        if (digits.length && digits[0] == id) {
+                                            return nodes[i].text.match(/\w+/)[0];
+                                        }
+                                    }
+
+                                    if (nodes[i].nodes && nodes[i].nodes.length) {
+                                        var name = findNameInNodesById(id, 0, nodes[i].nodes);
+                                        if (name)
+                                            return name;
+                                    }
+                                }
+                                return false;
+                            }
+
+                            toolTipText = findNameInNodesById(text, 1, w2ui['sidebar'].nodes);
+                        }
+                    }
+                }
+            }
+
+            if (toolTipText && toolTipText.length > 0) {
+                var pixelPosition = editor.renderer.textToScreenCoordinates(position);
+                pixelPosition.pageY += editor.renderer.lineHeight;
+                updateTooltip(pixelPosition, toolTipText);
+            } else {
+                updateTooltip(editor.renderer.textToScreenCoordinates(position));
+            }
+        } catch (err) {
+            console.log(err);
+        }
+    }
+
+    //var FileInfo = {
+    //  //
+    //  init: function() {
+    //    $('.ace_text-input').keyup(function() {
+    //      FileInfo.checkOpenFileDirty();
+    //    });
+    //  },
+
+    //  //
+    //  checkOpenFileDirty: function() {
+    //    try
+    //    {
+    //      if (openScriptId == undefined)
+    //        return;
+
+    //      // file cannot be dirty
+    //      if (editor.getReadOnly())
+    //        return;
+
+    //      // something went wrong and open code id is not in editsess object
+    //      var id = (openScriptId.indexOf('es') == 0)
+    //        ? openScriptId
+    //        : 'es' + openScriptId;
+
+    //      // something went wrong and open code id is not in editsess object
+    //      if ( ! editsess[id])
+    //        throw "Script ID " + id + " not found in editsess";
+
+    //      var data = editsess[id].data;
+
+    //      // if the editor code is != to original loaded, file is dirty
+    //      if (editor.getValue() != data.CodeValue)
+    //        $('#titleinfo').html("Editing: " + data.CodeName + " (" + data.CodeId + ")  <b style='color: crimson'>UNSAVED CHANGES</b>");
+    //      else {
+    //        // else file is clean
+    //        $('#titleinfo').html("Editing: " + data.CodeName + " (" + data.CodeId + ")");
+    //      }
+    //    }
+    //    catch (err)
+    //    {
+    //      console.log(err);
+    //    }
+    //  }
+    //}
+</script>
+</body>
+</html>
