@@ -1,4 +1,6 @@
 # MonolithStandlone
+![](https://github.com/ktmdan/MonolithStandlone/workflows/Python%20application/badge.svg)
+
 Monolith is a standalone web based python editor.  
 All code is saved in a Sqllite3 database.
 Code is designed to also run under IronPython so version 2.7 is what its currently using now
