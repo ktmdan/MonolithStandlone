@@ -26,6 +26,7 @@ class PythonRunner(object):
         import imp,sys
         mymod = imp.new_module('dynamic_' + str(codeid))
         setattr(mymod,'PythonRunDict',PythonRunner.PythonRunDict)
+        setattr(mymod,'PythonGetAndRunDict',PythonRunner.PythonGetAndRunDict)
         setattr(mymod,'PythonGetAndRun',PythonRunner.PythonGetAndRun)
         setattr(mymod,'PythonGetAndRunContext',PythonRunner.PythonGetAndRunContext)
         setattr(mymod,'PythonGetAndRunModule',PythonRunner.PythonGetAndRunModule)
