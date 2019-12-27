@@ -81,7 +81,6 @@ class dbhelper(object):
             c.execute(folder_init_sql)
             c.execute(code_init_sql)
             conn.commit()
-            print 'done'
         except Error as e:
             traceback.print_exc(file=sys.stdout)
             print (e)
@@ -123,28 +122,7 @@ class dbhelper(object):
             #get a submodule
             return ''
 
-    #def buildcodetree(self,starting,newindex):
-    #    sp = starting.split('/')
-    #    del sp[0]
-    #    del sp[len(sp)-1]
-    #    sp[len(sp)-2] = str(newindex)
-    #    s1 = '/'.join(sp)
-    #    s2 = '/' + s1 + '/'
-    #    return s2
-
-    #def fixcodetreestr(self,nodes,starting):
-    #    sp = starting.split('/')
-    #    del sp[0]
-    #    del sp[len(sp)-1]
-    #    last = sp[len(sp)-1]
-    #    lasti = int(last)
-    #    for n in list(filter(lambda x: x['CodeIsScope'],nodes)):
-    #        lasti = lasti + 1
-    #        n['CodeTree'] = self.buildcodetree(starting,lasti)
-    #        print starting + ' ' + n['CodeTree']
-
     def recursivenode(self,folderid,folders,codes):
-        #print 'recursivenode ' + str(folderid)
         f2 = list(filter(lambda x: x[2] == folderid ,folders))
         c2 = list(filter(lambda x: x[2] == folderid,codes))
         if len(f2) == 0 and len(c2) == 0: return []
@@ -188,7 +166,7 @@ class dbhelper(object):
         conn = self.lconn()
         c = conn.cursor()
         sf = "select codeid,codename,folderid,codetype,codevalue from code where codeid = ?"
-        c.execute(sf,codeid)
+        c.execute(sf,[codeid])
         row = c.fetchone()
         #returns, Text: <error message>, relogin=1 redirect to login, 
         ret = {
@@ -210,7 +188,7 @@ class dbhelper(object):
         conn = self.lconn()
         c = conn.cursor()
         sf = "select codevalue from code where codeid = ?"
-        c.execute(sf,(codeid))
+        c.execute(sf,[codeid])
         row = c.fetchone()
         code = row[0]
         if conn: conn.close()
@@ -222,9 +200,9 @@ class dbhelper(object):
         c = conn.cursor()
         dt = datetime.datetime.now().isoformat()
         archive = "insert into codehistory (codeid,codevalue,changedate) select codeid,codevalue,'" + dt + "' from code where codeid = ?"
-        c.execute(archive,(codeid))
+        c.execute(archive,[codeid])
         up = "update code set codevalue = ? where codeid = ?"
-        c.execute(up,(code,codeid))
+        c.execute(up,[code,codeid])
         conn.commit()
         if conn: conn.close()
         return 'SUCCESS'
@@ -234,7 +212,7 @@ class dbhelper(object):
         conn = self.lconn()
         c = conn.cursor()
         s = "UPDATE code set codename = ? where codeid = ?"
-        c.execute(s,(codename,codeid))
+        c.execute(s,[codename,codeid])
         conn.commit()
         if conn: conn.close()
         return 'SUCCESS'
@@ -246,7 +224,7 @@ class dbhelper(object):
         conn = self.lconn()
         c = conn.cursor()
         s = "INSERT INTO folder (foldername,folderparent) VALUES (?,?)"
-        c.execute(s,(scopename,parentfolderid))
+        c.execute(s,[scopename,parentfolderid])
         conn.commit()
         if conn: conn.close()
         return 'SUCCESS'
@@ -257,11 +235,11 @@ class dbhelper(object):
         conn = self.lconn()
         c = conn.cursor()
         s = "INSERT INTO code (codename,folderid,codevalue,codetype) VALUES (?,?,?,?) "
-        c.execute(s,(codename,parentfolderid,'',codetype))
+        c.execute(s,[codename,parentfolderid,'',codetype])
         lastrowid = c.lastrowid
         dt = datetime.datetime.now().isoformat()
         s = "INSERT INTO codehistory (codeid,codevalue,changedate) VALUES (?,?,?)"
-        c.execute(s,(lastrowid,'',dt))
+        c.execute(s,[lastrowid,'',dt])
         conn.commit()
         if conn: conn.close()
         return 'SUCCESS'
@@ -271,7 +249,7 @@ class dbhelper(object):
         conn = self.lconn()
         c = conn.cursor()
         s = "UPDATE code SET folderid = ? WHERE codeid = ?"
-        c.execute(s,(newScopeID,codeID))
+        c.execute(s,[newScopeID,codeID])
         conn.commit()
         if conn: conn.close()
         return 'SUCCESS'
@@ -282,11 +260,11 @@ class dbhelper(object):
         conn = self.lconn()
         c = conn.cursor()
         s2 = "SELECT codeid,codename,codetype FROM code WHERE codeid = ?"
-        c.execute(s2,(codeid))
+        c.execute(s2,[codeid])
         tcode = c.fetchone()
 
         s = "SELECT historyid,codeid,codevalue,changedate FROM codehistory where codeid = ?"
-        c.execute(s,(codeid))
+        c.execute(s,[codeid])
         rows = c.fetchall()
         for r in rows:
             ce = {
