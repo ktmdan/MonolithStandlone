@@ -5,11 +5,12 @@ Monolith is a standalone web based python editor.
 
 All code is saved in a Sqllite3 database.
 
-Code is designed to also run under IronPython so version 2.7 is what its currently using now.
+Code is designed to be compatible with IronPython so version 2.7 is what its currently using now.  
 
 ## How to run
 ```
-ipy MonolithStandalone.py or python Monolithstandalone.py
+pip install pypyodbc
+ipy MonolithStandalone.py
 ```
 Open browser to http://localhost:8000
 
