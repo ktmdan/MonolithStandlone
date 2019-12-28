@@ -59,7 +59,7 @@ class dbhelper(object):
         return '123'
 
     def GetTree(self):
-        conn = pyodbc.connect('Driver={SQL Server};Server=10.12.2.71;Database=Code;UID=monostandalone;PWD=monostandalone123!')        
+        conn = pyodbc.connect('')        
         cursor = conn.cursor()
         cursor.execute('set nocount on; select count(*) from codetree')
         row = cursor.fetchone()
