@@ -137,10 +137,6 @@ class S(BaseHTTPRequestHandler):
                         self.wfile.write(r)
                     except Exception as ex:
                         import sys
-                        #TODO needs to return object with Message,ErrorCode,Severity,Span,Text
-                        #exc_type, exc_value, exc_traceback = sys.exc_info()
-
-
                         tbm = traceback.format_exc()
                         linenum = re.findall(r'File "evaluatecode", line (\d+)',tbm)[0]
                         ret = {
@@ -149,9 +145,6 @@ class S(BaseHTTPRequestHandler):
                             }
                         jret = json.dumps(ret)
                         self.wfile.write(jret)
-                        #m = str(ex) + "\n" + traceback.format_exc()    
-                        #print 'EvaluateCode Exception ' + str(m)
-                        #self.wfile.write('EXCEPTION: ' + str(m))
                 else:
                     print 'Unknown request ' + str(qs['req'])
             else:
@@ -160,14 +153,6 @@ class S(BaseHTTPRequestHandler):
         else:
             print 'POST unknown path ' + uripath
 
-        
-#TODO need to add the following functions for eval
-#public static ScriptScope PythonGetAndRun(long codeid)
-#public static ScriptScope PythonGetAndRunContext(long codeid, object context), adds "context" to the dictionary
-#public static ScriptScope PythonGetAndRunDict(long codeid, IronPython.Runtime.PythonDictionary dict)
-#PythonGetCode
-#PythonGetAndRunModule
-#LogError
 
 def Run():
     server_class=HTTPServer
@@ -178,8 +163,5 @@ def Run():
     httpd.serve_forever()
 
 Run()
-#db = dbhelper()
-#n = db.GetTreePath(None)
-#print str(n)
 
 
