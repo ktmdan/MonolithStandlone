@@ -39,10 +39,18 @@ create table if not exists codehistory (
 )
 """
 
+remote_create_sql = """
+create table if not exists remote (
+    remoteid integer primary key AUTOINCREMENT,
+    remotename text not null,
+    remotecs text not null
+)
+"""
+
 folder_init_sql = """
 insert into folder (foldername)
-select 'Root' 
-WHERE NOT EXISTS(select 1 from folder where foldername = 'Root' and folderparent is null)
+select 'Local' 
+WHERE NOT EXISTS(select 1 from folder where foldername = 'Local' and folderparent is null)
 """
 
 code_init_sql = """
@@ -54,18 +62,6 @@ WHERE NOT EXISTS(select 1 from code where codename = 'Test' and folderid = 1)
 class dbhelper(object):
     def __init__(self):
         self.lcreate()
-
-    def Test(self):
-        return '123'
-
-    def GetTree(self):
-        conn = pyodbc.connect('')        
-        cursor = conn.cursor()
-        cursor.execute('set nocount on; select count(*) from codetree')
-        row = cursor.fetchone()
-        cursor.commit()
-        del cursor
-        return row[0] if row else None
 
     def lconn(self):
         return sqlite3.connect(LDBFN)
@@ -80,6 +76,7 @@ class dbhelper(object):
             c.execute(codehistory_create_sql)
             c.execute(folder_init_sql)
             c.execute(code_init_sql)
+            c.execute(remote_create_sql)
             conn.commit()
         except Error as e:
             traceback.print_exc(file=sys.stdout)
@@ -103,24 +100,57 @@ class dbhelper(object):
             f2 = list(filter(lambda x: not x[2],folderrows))
             for f in f2:
                 ctn = {
-                    'CodeTree': '/1/',
-                    'CodeId': f[0],
+                    'CodeId': 'l' + str(f[0]),
                     'CodeName': f[1],
                     'CodeInsertBy': 'System',
                     'CodeInsertDate': '2014-12-04 10:36:00',
                     'CodeIsScope': True,
                     'CodeIsSystem': True,
-                    'CodeLevel': 1,
                     'CodeType': None,
                     'Nodes': self.recursivenode(f[2],folderrows,coderows),
                     'CodeRevision': None
                     }
                 ret['Nodes'].append(ctn)
 
+            rtn = {
+                'CodeId': 'r',
+                'CodeName': 'Remote',
+                'CodeInsertBy': 'System',
+                'CodeInsertDate': '2014-12-04 10:36:00',
+                'CodeIsScope': True,
+                'CodeIsSystem': True,
+                'CodeType': None,
+                'Nodes': self.populateremote(),
+                'CodeRevision': None
+                }
+            ret['Nodes'].append(rtn)
+
             return json.dumps(ret)
         else:
             #get a submodule
             return ''
+
+    def populateremote(self):
+        conn = self.lconn()
+        c = conn.cursor()
+        s = "SELECT remoteid, remotename, remotecs from remote"
+        c.execute(s)
+        remoterows = c.fetchall()
+        ret = []
+        for r in remoterows:
+            rtn = {
+                'CodeId': 'r' + str(r[0]),
+                'CodeName': r[1],
+                'CodeInsertBy': 'System',
+                'CodeInsertDate': '2014-12-04 10:36:00',
+                'CodeIsScope': True,
+                'CodeIsSystem': True,
+                'CodeType': None,
+                'Nodes': self.populateremote(),
+                'CodeRevision': None
+                }
+            ret.append(rtn)
+        return ret
 
     def recursivenode(self,folderid,folders,codes):
         f2 = list(filter(lambda x: x[2] == folderid ,folders))
@@ -129,14 +159,12 @@ class dbhelper(object):
         ret = []
         for f in f2:
             ctn = {
-            #'CodeTree': '/1/', #not used
-            'CodeId': f[0],
+            'CodeId': 'l' + str(f[0]),
             'CodeName': f[1],
             'CodeInsertBy': 'System', #Used only in history
             'CodeInsertDate': '2014-12-04 10:36:00', #used only in history
             'CodeIsScope': True,
             'CodeIsSystem': True,
-            #'CodeLevel': 1, #notused
             'CodeType': None, 
             'Nodes': [],
             'CodeRevision': None
@@ -145,14 +173,12 @@ class dbhelper(object):
             ret.append(ctn)
         for c in c2:
             ctn2 = {
-            #'CodeTree': '/1/',
-            'CodeId': c[0],
+            'CodeId': 'l' + str(c[0]),
             'CodeName': c[1],
             'CodeInsertBy': 'System', #used only in history
             'CodeInsertDate': '2014-12-04 10:36:00', #used only in history
             'CodeIsScope': False,
             'CodeIsSystem': True,
-            #'CodeLevel': 1,
             'CodeType': c[3], #/ace/mode codetype
             'Nodes': [],
             'CodeRevision': None #added to name if set
@@ -163,6 +189,7 @@ class dbhelper(object):
     def GetCode(self,codeid):
         if not codeid: return ''
         codeid = str(codeid)
+        if codeid.startswith('l'): codeid = codeid[1:]
         conn = self.lconn()
         c = conn.cursor()
         sf = "select codeid,codename,folderid,codetype,codevalue from code where codeid = ?"
@@ -185,6 +212,7 @@ class dbhelper(object):
     def GetCodeRaw(self,codeid):        
         if not codeid: return ''
         codeid = str(codeid)
+        if codeid.startswith('l'): codeid = codeid[1:]
         conn = self.lconn()
         c = conn.cursor()
         sf = "select codevalue from code where codeid = ?"
@@ -196,6 +224,8 @@ class dbhelper(object):
 
     def SaveCode(self,codeid,code):
         if not codeid or not code: return ''
+        codeid = str(codeid)
+        if codeid.startswith('l'): codeid = codeid[1:]
         conn = self.lconn()
         c = conn.cursor()
         dt = datetime.datetime.now().isoformat()
@@ -209,6 +239,8 @@ class dbhelper(object):
 
     def RenameCode(self,codeid,codename):
         if not codeid or not codename: return ''
+        codeid = str(codeid)
+        if codeid.startswith('l'): codeid = codeid[1:]
         conn = self.lconn()
         c = conn.cursor()
         s = "UPDATE code set codename = ? where codeid = ?"
@@ -220,6 +252,8 @@ class dbhelper(object):
     def NewScope(self,parentfolderid,scopename,issystem):
         #TODO handle issystem
         if not parentfolderid or not scopename or not issystem: return ''
+        parentfolderid = str(parentfolderid)
+        if parentfolderid.startswith('l'): parentfolderid = parentfolderid[1:]
         if parentfolderid == '-1': parentfolderid = None
         conn = self.lconn()
         c = conn.cursor()
@@ -231,6 +265,8 @@ class dbhelper(object):
 
     def NewCode(self,parentfolderid,codename,issystem,codetype,isversioned):
         if not parentfolderid or not codename or not issystem or not codetype or not isversioned: return ''
+        parentfolderid = str(parentfolderid)
+        if parentfolderid.startswith('l'): parentfolderid = parentfolderid[1:]
         if parentfolderid == '-1': parentfolderid = None
         conn = self.lconn()
         c = conn.cursor()
@@ -246,6 +282,11 @@ class dbhelper(object):
 
     def MoveCode(self,codeID,newScopeID):
         if not codeID or not newScopeID: return ''
+        codeID = str(codeID)
+        newScopeID = str(newScopeID)
+        if codeID.startswith('l'): codeID = codeID[1:]
+        if newScopeID.startswith('l'): newScopeID = newScopeID[1:]
+
         conn = self.lconn()
         c = conn.cursor()
         s = "UPDATE code SET folderid = ? WHERE codeid = ?"
@@ -255,6 +296,8 @@ class dbhelper(object):
         return 'SUCCESS'
 
     def CodeHistory(self,codeid):
+        codeid = str(codeid)
+        if codeid.startswith('l'): codeid = codeid[1:]
         #determine how to handle current or insert a dummy record into history
         ret = []
         conn = self.lconn()
