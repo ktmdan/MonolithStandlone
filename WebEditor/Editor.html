@@ -1031,7 +1031,7 @@ W2UI: http://w2ui.com/web/docs/w2sidebar.hide
                 url: "WebApi.ashx?req=Code&id=" + id + '&xxxallowexception=1',
                 dataType: 'json',
                 type: "POST",
-            }).done(function(data) {
+            }).done(function (data) {
                 var dTxt = diff_text(data.CodeValue, editor.getSession().getValue());
                 // log(dTxt);
                 $('#tabDiff').html(dTxt);
@@ -1099,7 +1099,7 @@ W2UI: http://w2ui.com/web/docs/w2sidebar.hide
             dataType: 'json',
             type: "POST",
             timeout: 60000
-        }).done(function(data) {
+        }).done(function (data) {
             wasCodeChanged = DoHaveChanges(currentcode, encodeURIComponent(data.CodeValue));
 
             if (!wasCodeChanged) {

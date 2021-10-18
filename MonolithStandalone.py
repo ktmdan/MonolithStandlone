@@ -10,7 +10,7 @@ import re
 
 PORT=8000 
 
-class S(BaseHTTPRequestHandler):
+class MonolithHandler(BaseHTTPRequestHandler):
     editorhtml = 0
     db = dbhelper()
 
@@ -146,22 +146,29 @@ class S(BaseHTTPRequestHandler):
                         jret = json.dumps(ret)
                         self.wfile.write(jret)
                 else:
-                    print 'Unknown request ' + str(qs['req'])
+                    print ('Unknown request ' + str(qs['req']))
             else:
-                print 'Missing request ' + str(qs)
+                print ('Missing request ' + str(qs))
             #print '/WebApi.ashx: ' + uripath + ' QS: ' + str(qs)
         else:
-            print 'POST unknown path ' + uripath
+            print ('POST unknown path ' + uripath)
 
+# Note this requires a request after you press cntrl-C
+class StoppableHTTPServer(SocketServer.TCPServer):
+    def run(self):
+        try:
+            self.serve_forever()
+        except KeyboardInterrupt:
+            pass
+        finally:
+            print ('Calling close')
+            # Clean-up server (close socket, etc.)
+            self.server_close()
 
 def Run():
-    server_class=HTTPServer
-    handler_class=S
-    server_address = ('127.0.0.1', PORT)
-    httpd = server_class(server_address, handler_class)
-    print 'Starting httpd...'
-    httpd.serve_forever()
+    httpd = StoppableHTTPServer(('127.0.0.1', PORT), MonolithHandler)
+    print ('Starting httpd... http://localhost:' + str(PORT))
+    httpd.run()
 
 Run()
-
 
