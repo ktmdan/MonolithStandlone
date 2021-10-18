@@ -1,7 +1,7 @@
 # MonolithStandlone
 ![](https://github.com/ktmdan/MonolithStandlone/workflows/Python%20application/badge.svg)
 
-Monolith is a standalone web based python editor.  
+Monolith is a standalone web based python editor.  This project was created because we needed a way to run one off processes and have complete history of the code base.  This could easily be done with Git or the like but the advantage is that this can execute code off a central remote repository (this is still being worked on.)
 
 All code is saved in a Sqllite3 database.
 
